@@ -1,1 +1,3 @@
-# SMILE_server
+# SMILE_app
+
+[Demo](/pages/smiledetect)
