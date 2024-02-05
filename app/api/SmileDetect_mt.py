@@ -61,12 +61,13 @@ def upload_img():
     print(filename)
 
     file_path =PurePath(UPLOAD_FOLDER)/filename
+    print('file_path:',file_path)
 
 
     
     # 保存文件到上传文件夹
     file.save(file_path)
-    return add(file_path)
+    return add(str(file_path))
 
      
 

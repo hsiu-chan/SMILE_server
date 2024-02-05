@@ -4,5 +4,5 @@ services:
     image: my-python-app:latest
     ports:
       - "8888:8888"
-    volumes:
-      - "/Users/chc/gits/SMILE_app/server/app:/root/app"
+    #volumes:
+      #- "/Users/chc/gits/SMILE_app/server/app://app"

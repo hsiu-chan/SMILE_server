@@ -1,3 +1,5 @@
-docker build -t my-python-app .
+docker build -t smile-server .
 
 docker-compose up -d  
+
+docker run -it smile-server /bin/bash

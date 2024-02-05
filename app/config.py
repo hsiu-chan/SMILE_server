@@ -11,4 +11,4 @@ MODEL_PATH = ROOT_PATH+"models/best.pt"
 
 FLASK_PORT = 8888
 
-DEVICE = 'mps'
+DEVICE = 'cpu'

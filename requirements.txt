@@ -2,11 +2,9 @@ Flask== 2.2.2
 numpy
 Jinja2==3.1.2
 Markdown==3.4.1
-uuid
-ultralytics
 matplotlib==3.6.2
-
 Werkzeug==2.2.3
+
 tensorflow == 2.11.0
 opencv-python==4.7.0.68
 opencv-contrib-python==4.7.0.68
@@ -15,3 +13,5 @@ torch==2.0.0
 torchaudio==2.0.1
 torchvision == 0.15.1
 mediapipe == 0.10.3
+ultralytics
+pillow
