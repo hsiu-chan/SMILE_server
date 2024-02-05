@@ -6,7 +6,7 @@ import mediapipe as mp
 import os
 import numpy as np
 from config import OUTPUT_FOLDER, MODEL_PATH
-from lib.ToothClassifier import ToothClassifier
+from lib.ToothClassifier import ToothClassifier,FDI_MAP
 
 
 Model = YOLO(MODEL_PATH)
@@ -112,7 +112,7 @@ class SMILE:
         for t, cl,c in zip(self.tooth, self.tooth_cls,colors):
             x,y,w,h=tuple(t)
             
-            currentAxis.text(x,y, cl,bbox={'facecolor': c, 'alpha': 0.5})
+            currentAxis.text(x,y, FDI_MAP[cl],bbox={'facecolor': c, 'alpha': 0.5})
             currentAxis.add_patch(plt.Rectangle((x-w/2,y-h/2),w,h,fill=False,edgecolor=c,linewidth=2))
 
 
