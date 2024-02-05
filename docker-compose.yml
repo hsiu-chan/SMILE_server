@@ -1,7 +1,7 @@
 version: 'latest'
 services:
   web:
-    image: my-python-app:latest
+    image: smile-server:latest
     ports:
       - "8888:8888"
     #volumes:

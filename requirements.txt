@@ -15,3 +15,5 @@ torchvision == 0.15.1
 mediapipe == 0.10.3
 ultralytics
 pillow
+joblib
+scikit-learn ==  1.2.0

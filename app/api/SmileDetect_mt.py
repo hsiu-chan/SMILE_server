@@ -1,4 +1,4 @@
-from flask import Flask, request, Blueprint,redirect, send_file, abort
+from flask import Flask, request, Blueprint,redirect, send_file, abort, jsonify
 
 #import uuid
 import numpy as np
@@ -12,8 +12,7 @@ import os
 from lib.Smile import SMILE
 from werkzeug.utils import secure_filename
 
-from config import UPLOAD_FOLDER, DEVICE # 引用全局变量
-
+from config import UPLOAD_FOLDER, DEVICE 
 
 
 # 允許的文件類型
@@ -55,7 +54,7 @@ def upload_img():
     
 
     #if request.method== 'POST':
-       
+
 
     filename = secure_filename(file.filename) # 确保文件名的安全性
     print(filename)
@@ -80,7 +79,7 @@ def add(file_path):
     
     nowfig=SMILE(file_path, DEVICE)
     if not nowfig.find_all_tooth():
-        return {'msg':"Face not found"}
+        return {'message':"Face not found"}
         
 
 
@@ -91,7 +90,4 @@ def add(file_path):
 
 
 
-
-
-
-    return send_file( image_path, mimetype='image/jpeg')
+    return jsonify({"message": "success"}),send_file( image_path, mimetype='image/jpeg')
