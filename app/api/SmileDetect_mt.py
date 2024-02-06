@@ -90,4 +90,4 @@ def add(file_path):
 
 
 
-    return jsonify({"message": "success"}),send_file( image_path, mimetype='image/jpeg')
+    return send_file( image_path, mimetype='image/jpeg')
