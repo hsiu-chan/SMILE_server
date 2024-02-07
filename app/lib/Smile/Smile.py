@@ -19,6 +19,7 @@ face_mesh=mp_face_mesh.FaceMesh(
 
 mouse=[62,96,89,179,86,15,316,403,319,325,292,407,272,271,268,12,38,41,42,183]#嘴巴
 lip=[78,95,88,178,87,14,317,402,318,324,308,415,310,311,312,13,82,81,80,191]#嘴唇
+mid_line = [10,9,8,6,5,4,1,0]# 中線
 
 class SMILE:
     def __init__(self,input_path, device='cpu',filter=0.9):
@@ -46,6 +47,11 @@ class SMILE:
         """裁切只保留嘴巴img"""
         self.box_pol=[]
         """boximg切割的座標"""
+
+        self.rotation_matrix=[]
+        """旋轉矩陣"""
+        self.rotated_img=''
+        """轉完的矩陣"""
         
 
 
@@ -60,6 +66,7 @@ class SMILE:
 
         self.ntooth=0
         """牙齒數"""
+        print('SMILE_init')
 
 
         #### set_model###
@@ -69,10 +76,12 @@ class SMILE:
 
 
     def find_all_tooth(self):
-        try:
+        """try:
             self.find_mouse()
+            print (f'found mouth')
         except:
-            return False
+            return False"""
+        self.find_mouse()
 
         result = Model.predict(
             source=self.output_path,
@@ -120,6 +129,7 @@ class SMILE:
         plt.savefig(self.output_path,bbox_inches='tight',pad_inches=0.0, dpi=200)
         #plt.show()
         plt.clf()
+        print('img_out')
         return True
 
 
@@ -134,13 +144,39 @@ class SMILE:
         #########################openCV辨識嘴 #########################
         RGBim = cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
         results = face_mesh.process(RGBim)
+
+        
+        ## 取得臉中線
+        midline_x=[]
+        midline_y=[]
+
+        if results.multi_face_landmarks:
+            for face_landmarks in  results.multi_face_landmarks:
+                for index in mid_line:
+                    midline_x.append(int(face_landmarks.landmark[index].x * w))
+                    midline_y.append(int(face_landmarks.landmark[index].y * h))
+
+        self.get_rotate_matrix(midline_x,midline_y)
+
+        self.rotated_img = cv2.warpAffine(self.img, self.rotation_matrix[:2], (w, h), flags=cv2.INTER_LINEAR)
+
+        
+        ## 辨識
+
         if results.multi_face_landmarks:
             for face_landmarks in results.multi_face_landmarks:
                 #for index in mouse:
                 for index in lip:
                     x = int(face_landmarks.landmark[index].x * w)
                     y = int(face_landmarks.landmark[index].y * h)
+                    roxy=np.dot(self.rotation_matrix,[[x],[y],[1]])
                     self.mouse.append([x,y])
+                    #self.mouse.append([
+                    #    int(roxy[0]),
+                    #    int(roxy[1])
+                    #])
+                
+
         
         
 
@@ -158,16 +194,43 @@ class SMILE:
         
         ######輸出#####
         self.box=np.array([lmos,rmos,umos,dmos])
+
     
 
-        self.boximg=self.img[self.box[2]-5:self.box[3]+5,self.box[0]-5:self.box[1]+5]
+        self.boximg=self.rotated_img[self.box[2]-5:self.box[3]+5,self.box[0]-5:self.box[1]+5]
+        
+
 
         self.box_pol=[self.box[0]-5,self.box[2]-5]
 
 
+
         cv2.imwrite(self.output_path,self.boximg)
-        
 
         return self.box
     
-    
+    def get_rotate_matrix(self,x,y):
+        A = np.vstack([x, np.ones(len(x))]).T
+        m, c = np.linalg.lstsq(A, y, rcond=None)[0]
+        m=np.abs(m)
+        print(f'{m=}')
+
+            ## 回歸直線
+        w,h,d=self.shape
+
+        cy,cx= w/2, h/2
+
+        t1=np.array([[1,0,-cx],
+                    [0,1,-cy],
+                    [0,0,1]])
+        lenth = np.sqrt(1+m*m)
+
+        r=np.array([[m,-1,0],
+            [1,m,0],
+            [0,0,lenth]])/lenth
+        
+        t2=np.array([[1,0,cx],
+                    [0,1,cy],
+                    [0,0,1]])
+
+        self.rotation_matrix = np.dot(t2,np.dot(r, t1))

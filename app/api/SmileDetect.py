@@ -49,6 +49,7 @@ def add(data):
     
     nowfig=SMILE(filename, DEVICE)
     nowfig.find_all_tooth()
+    print ('hi')
     #mask,sc=nowfig.predict([[50,14]])
 
     b64=path_to_base64(nowfig.output_path)
