@@ -22,12 +22,15 @@ lip=[78,95,88,178,87,14,317,402,318,324,308,415,310,311,312,13,82,81,80,191]#嘴
 mid_line = [10,9,8,6,5,4,1,0]# 中線
 
 class SMILE:
-    def __init__(self,input_path, device='cpu',filter=0.9):
+    def __init__(self,input_path, 
+                 device='cpu',
+                 filter=0.9, 
+                 output_path=f"{OUTPUT_FOLDER}output.png" ):
         self.device=device
         #####Input/output#####
         self.input_path=input_path 
 
-        self.output_path=f"{OUTPUT_FOLDER}output.jpeg" 
+        self.output_path=output_path
         """圖片輸出路徑"""
 
 
@@ -157,7 +160,8 @@ class SMILE:
 
         self.get_rotate_matrix(midline_x,midline_y)
 
-        self.rotated_img = cv2.warpAffine(self.img, self.rotation_matrix[:2], (w, h), flags=cv2.INTER_LINEAR)
+        self.rotated_img = self.img
+        #cv2.warpAffine(self.img, self.rotation_matrix[:2], (w, h), flags=cv2.INTER_LINEAR)
 
         
         ## 辨識
