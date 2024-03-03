@@ -47,7 +47,7 @@ def add(data):
     with open(filename, "wb") as f:
         f.write(img)
     
-    nowfig=SMILE(filename, DEVICE)
+    nowfig=SMILE(filename, device=DEVICE, filter=0.6)
     nowfig.find_all_tooth()
     print ('hi')
     #mask,sc=nowfig.predict([[50,14]])

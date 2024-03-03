@@ -76,27 +76,26 @@ class SMILE:
 
 
     def find_all_tooth(self):
-        """try:
+        try:
             self.find_mouse()
             print (f'found mouth')
         except:
-            return False"""
-        self.find_mouse()
+            return False
 
+
+        ## YOLO predict
         result = Model.predict(
             source=self.output_path,
             mode="predict",
             device=self.device
         )
         
-        
-
-
-
         boxes = result[0].boxes
         
         self.tooth=[]
         for box in boxes:
+            if int(box.cls!=1):
+                continue
             if box.conf[0]>=self.filter:
                 self.tooth.append(box.xywh.tolist()[0] )
 
@@ -209,7 +208,10 @@ class SMILE:
 
         return self.box
     
-    def get_rotate_matrix(self,x,y):
+    def get_rotate_matrix(self,x:list,y:list): 
+        """
+        x,y 為中線上的點，取回歸直線後旋轉成垂直
+        """
         A = np.vstack([x, np.ones(len(x))]).T
         m, c = np.linalg.lstsq(A, y, rcond=None)[0]
         m=np.abs(m)
@@ -225,8 +227,8 @@ class SMILE:
                     [0,0,1]])
         lenth = np.sqrt(1+m*m)
 
-        r=np.array([[m,-1,0],
-            [1,m,0],
+        r=np.array([[m,1,0],
+            [-1,m,0],
             [0,0,lenth]])/lenth
         
         t2=np.array([[1,0,cx],

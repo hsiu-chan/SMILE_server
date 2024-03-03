@@ -3,10 +3,13 @@ import joblib
 from config import RANDOM_FOREST_MODEL
 
 loaded_model = joblib.load(RANDOM_FOREST_MODEL)
-NUM_LABELS = 7
+NUM_LABELS = 8
 
 
 class ToothClassifier:
+    """
+    Tooth shoould be [xywh_box]
+    """
     """
     Tooth shoould be [xywh_box]
     """
@@ -16,29 +19,43 @@ class ToothClassifier:
         self.cls=[-1 for i in range(self.len)]
         """ Classes of tooth"""
 
-        ll=self.len-1
-        if ll==0:
-            ll=1
+
+        ## 生成 features
+        tx_postive=[t[0]-w/2 for t in tooth if t[0]>w/2]
+        tx_negative=[w/2-t[0] for t in tooth if t[0]<=w/2]
+
+        sorted_tx_postive = sorted(tx_postive)
+        sorted_tx_negative = sorted(tx_negative)
+        
+        ranks_tx_postive = {val:i for i,val in enumerate(sorted_tx_postive)} ## 原始數值 -> 排名
+
+        ranks_tx_negative = {val:i for i,val in enumerate(sorted_tx_negative)} ## 原始數值 -> 排名
+
 
         tw=[t[2] for t in tooth]
         sorted_tw=sorted(tw) # 大到小
-        ranks_tw = {val: i/(ll) for i, val in enumerate(sorted_tw)}# i:排名, val:原始值
+        ranks_tw = {val: i/(self.len-1) for i, val in enumerate(sorted_tw)}# i:排名, val:原始值
 
         th=[t[3] for t in tooth]
         sorted_th = sorted(th)
-        ranks_th = {val:i/(ll) for i,val in enumerate(sorted_th)}
+        ranks_th = {val:i/(self.len-1) for i,val in enumerate(sorted_th)}
 
 
 
 
-        self.features=[[ #from xywh
-            t[0]/w,
-            t[1]/h,
-            t[2]/w,
-            t[3]/h,
-            w/h,
-            ranks_tw[tw[i]],# Rank w
-            ranks_th[th[i]] # Rank t
+        self.features=[[ # from xywh
+            t[0]/w, ## x
+            t[1]/h, ## y
+            t[2]/w, ## w
+            t[3]/h, ## h
+            w/h, ## 長寬比
+
+            ranks_tx_postive[t[0]-w/2] if t[0]-w/2 in ranks_tx_postive else -1,
+
+            ranks_tx_negative[w/2-t[0]] if w/2-t[0] in ranks_tx_negative else -1,
+
+            ranks_tw[t[2]],# Rank w 牙齒寬度排名
+            ranks_th[t[3]] # Rank h 牙齒高度排名
 
         ] for i,t in enumerate(tooth)]
         
@@ -47,9 +64,6 @@ class ToothClassifier:
         self.predicts=loaded_model.predict_proba(self.features)
 
         self.analysis()
-        
-        
-
 
 
 
@@ -57,6 +71,9 @@ class ToothClassifier:
     def analysis(self):
         
         self._now=self.predicts.copy()
+        """
+        每顆牙的分類機率
+        """
         self._result=[[] for i in range(NUM_LABELS)]
 
         for i in range(self.len):
@@ -74,21 +91,41 @@ class ToothClassifier:
     def add(self,ti):
 
 
-        cls=np.argmax(self._now[ti])
+        cls=np.argmax(self._now[ti]) ## 機率最大的類別
 
-        if cls>6:
+        if cls>7:
             print('class error')
             return
         
-        self._result[cls].append(ti)
-        if cls in (0,6) :
-            return
-        elif cls == 1 and len(self._result[1])<3:
-            return
-        elif cls in (2,3,4,5) and len(self._result[cls])<2:
+        if cls == 0 :
+            self._result[cls].append(ti)
             return
         
+        elif cls == 1 and len(self._result[1])<3: ## 上顎門牙未滿
+            self._result[cls].append(ti)
+            return
+        elif cls in (2,3,4,5) and len(self._result[cls])<2: ## 上顎側門牙犬齒未滿
+            self._result[cls].append(ti)
+            return
+        elif cls == 6:
+            if self._now[ti][4]==0: ## 不可能是 4 就必然為 6
+                self._result[cls].append(ti)
+                return
+            cls = 4
+            self._result[cls].append(ti) ## 優先去4
+            if len(self._result[cls])<2: ## 4 沒滿就 return
+                return
+        elif cls == 7:
+            if self._now[ti][5]==0: ## 不可能是 5 就必然為 7
+                self._result[cls].append(ti)
+                return
+            cls = 5
+            self._result[cls].append(ti) ## 優先去5
+            if len(self._result[cls])<2: ## 4 沒滿就 return
+                return
         
+        
+        ## 滿人找出最不可能的剔掉
         member=np.array(self._result[cls])
         argpmin=np.argmin([self._now[t][cls] for t in member])
         pmin=member[argpmin]
