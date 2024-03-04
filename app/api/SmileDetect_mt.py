@@ -94,7 +94,7 @@ def add(file_path): ## 辨識微笑並回傳結果
     multipartData = MultipartEncoder(
         fields={
             'info': (None, json.dumps(nowfig.smile_info), 'application/json'),
-            'alert': nowfig.error,
+            'error': '\n'.join(nowfig.error),
             'image': ('smile_result', open(output, 'rb'), 'image/png')
         }
     )
