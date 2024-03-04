@@ -10,7 +10,7 @@ OUTPUT_FOLDER =ROOT_PATH+"outputs/"
 
 FLASK_PORT = 8888
 
-DEVICE = 'cuda'
+DEVICE = 'cpu'
 """YOLO設備(cpu,cuda,mps)"""
 
 MODEL_PATH = ROOT_PATH+"models/best.pt"
