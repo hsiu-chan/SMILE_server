@@ -86,7 +86,8 @@ def add(file_path): ## 辨識微笑並回傳結果
     if not nowfig.find_all_tooth():
         return {'message':"Face not found"}
     
-    del nowfig
+    
+    
 
     
 
@@ -97,6 +98,9 @@ def add(file_path): ## 辨識微笑並回傳結果
             'image': ('smile_result', open(output, 'rb'), 'image/png')
         }
     )
+
+    del nowfig
+
 
 
 
