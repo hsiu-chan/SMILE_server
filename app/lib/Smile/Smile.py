@@ -27,6 +27,9 @@ class SMILE:
                  filter=0.9, 
                  output_path=f"{OUTPUT_FOLDER}output.png" ):
         self.device=device
+
+        self.error=''
+
         #####Input/output#####
         self.input_path=input_path 
 
@@ -69,6 +72,11 @@ class SMILE:
 
         self.ntooth=0
         """牙齒數"""
+
+        self.smile_info={
+            'test':'vault'
+        }
+
         print('SMILE_init')
 
 

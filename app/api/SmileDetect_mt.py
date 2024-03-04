@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from io import BytesIO
 from pathlib import PurePath
+import json
 
 import os
 
@@ -91,8 +92,9 @@ def add(file_path): ## 辨識微笑並回傳結果
 
     multipartData = MultipartEncoder(
         fields={
-            'info': '這是一些關於圖片的資訊',
-            'file': ('smile_result', open(output, 'rb'), 'image/png')
+            'info': (None, json.dumps(nowfig.smile_info), 'application/json'),
+            'alert': nowfig.error,
+            'image': ('smile_result', open(output, 'rb'), 'image/png')
         }
     )
 
