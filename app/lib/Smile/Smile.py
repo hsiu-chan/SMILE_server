@@ -152,7 +152,6 @@ class SMILE:
         X.append(X[0])
         Y=[y[1]-self.box[2] for y in self.mouse]
         Y.append(Y[0])
-        print(f'{X=},{Y=}')
 
         plt.plot(X,Y)
 
@@ -204,11 +203,11 @@ class SMILE:
                     x = int(face_landmarks.landmark[index].x * w)
                     y = int(face_landmarks.landmark[index].y * h)
                     roxy=np.dot(self.rotation_matrix,[[x],[y],[1]])
-                    #self.mouse.append([x,y])
-                    self.mouse.append([
-                        int(roxy[0]),
-                        int(roxy[1])
-                    ])
+                    self.mouse.append([x,y])
+                    #self.mouse.append([
+                    #    int(roxy[0]),
+                    #    int(roxy[1])
+                    #])
         
 
                 
@@ -236,7 +235,7 @@ class SMILE:
 
     
 
-        self.boximg=self.rotated_img[self.box[2]:self.box[3],self.box[0]:self.box[1]]
+        self.boximg=self.img[self.box[2]:self.box[3],self.box[0]:self.box[1]]
 
 
         self.smile_info['mouse_box']=[10,rmos-self.box[0],10, dmos-self.box[2]] #lrud 
@@ -269,8 +268,8 @@ class SMILE:
                     [0,0,1]])
         lenth = np.sqrt(1+m*m)
 
-        r=np.array([[m,1,0],
-            [-1,m,0],
+        r=np.array([[m,-1,0],
+            [1,m,0],
             [0,0,lenth]])/lenth
         
         t2=np.array([[1,0,cx],
@@ -287,7 +286,14 @@ class SMILE:
                 tooth_map[c].append(i)
             except:
                 tooth_map[c]=[i]
-            
+        
+        ## most posterior maxillary teeth 
+        most_posterior_maxillary_teeth=0
+        for i, cls in enumerate(self.tooth_cls):
+            if cls!=0:
+                most_posterior_maxillary_teeth+=1
+        self.smile_info['most_posterior_maxillary_teeth']=most_posterior_maxillary_teeth
+
 
         ## Arc ratio
         try:
@@ -298,12 +304,15 @@ class SMILE:
             canine_lower=[]
             for i in [4,5]:
                 try:
-                    canine_lower.append(self.tooth[tooth_map[i]][1]+ ## cy
-                                    self.tooth[tooth_map[i]][3]/2) ## h/2
+                    for id in tooth_map[i]:
+                        canine_lower.append(self.tooth[id][1]+ ## cy
+                                    self.tooth[id][3]/2) ## h/2
                 except:
                     pass
+            print(canine_lower)
             if len(canine_lower)>0:
                 intercanine_line = max(canine_lower)
+                self.smile_info['arc_ratio']=(incisor_lower_border-intercanine_line)/(self.smile_info['mouse_box'][3]-intercanine_line)
             else:
                 self.error.append('intercanine_line not found')
             
@@ -311,6 +320,13 @@ class SMILE:
         except:
             self.error.append('incisor_lower_border not found')
         
+
+        self.tooth_map=tooth_map
+
+        ## buccal corridor
+
+        all_teeth_width = max([ t[0]+t[2]/2 for t in self.tooth])- min([ t[0]-t[2]/2 for t in self.tooth])
         
+        self.smile_info['buccal corridor']=1-all_teeth_width/self.smile_info['mouth_width']
 
         
