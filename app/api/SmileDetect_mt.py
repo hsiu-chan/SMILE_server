@@ -95,7 +95,7 @@ def add(file_path): ## 辨識微笑並回傳結果
     multipartData = MultipartEncoder(
         fields={
             'info': '這是一些關於圖片的資訊',
-            'file': ('filename', open(output, 'rb'), 'image/png')
+            'file': ('smile_result', open(output, 'rb'), 'image/png')
         }
     )
 
