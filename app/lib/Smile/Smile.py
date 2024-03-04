@@ -149,7 +149,9 @@ class SMILE:
         
         ## draw mouth
         X=[x[0]-self.box[0] for x in self.mouse]
+        X.append(X[0])
         Y=[y[1]-self.box[2] for y in self.mouse]
+        Y.append(Y[0])
         print(f'{X=},{Y=}')
 
         plt.plot(X,Y)
