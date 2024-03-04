@@ -60,7 +60,6 @@ def upload_img():
 
 
     filename = secure_filename(file.filename) # 确保文件名的安全性
-    print(filename)
 
     file_path =PurePath(UPLOAD_FOLDER)/filename
     print('file_path:',file_path)
@@ -81,16 +80,14 @@ def add(file_path): ## 辨識微笑並回傳結果
 
     
     output=f'{OUTPUT_FOLDER}output.png' ## 輸出路徑
+    
     nowfig=SMILE(file_path, DEVICE, output_path= output, filter=0.65)
     if not nowfig.find_all_tooth():
         return {'message':"Face not found"}
-        
-
-
-
-    image_path = nowfig.output_path
-
+    
     del nowfig
+
+    
 
     multipartData = MultipartEncoder(
         fields={

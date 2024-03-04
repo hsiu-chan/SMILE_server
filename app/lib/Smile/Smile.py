@@ -131,7 +131,7 @@ class SMILE:
         plt.savefig(self.output_path,bbox_inches='tight',pad_inches=0.0, dpi=200)
         #plt.show()
         plt.clf()
-        print('img_out')
+        print('All tooth found and img output')
         return True
 
 
@@ -219,7 +219,7 @@ class SMILE:
         A = np.vstack([x, np.ones(len(x))]).T
         m, c = np.linalg.lstsq(A, y, rcond=None)[0]
         m=np.abs(m)
-        print(f'{m=}')
+        print(f'臉中線斜率{m=}')
 
             ## 回歸直線
         w,h,d=self.shape
