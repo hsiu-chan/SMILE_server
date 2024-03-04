@@ -225,7 +225,7 @@ class SMILE:
         hmos=dmos-umos#嘴高
         mmos=[int((lmos+rmos)/2),int((umos+dmos)/2)]#嘴中心
 
-        self.smile_info['mouth_width']=wmos
+        self.smile_info['mouth_width']=int(wmos)
 
         
         
@@ -238,7 +238,7 @@ class SMILE:
         self.boximg=self.img[self.box[2]:self.box[3],self.box[0]:self.box[1]]
 
 
-        self.smile_info['mouse_box']=[10,rmos-self.box[0],10, dmos-self.box[2]] #lrud 
+        self.smile_info['mouse_box'] =[10,int(rmos-self.box[0]),10, int(dmos-self.box[2])] #lrud 
         
 
 
