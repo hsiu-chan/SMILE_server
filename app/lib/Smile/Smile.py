@@ -148,8 +148,8 @@ class SMILE:
             currentAxis.add_patch(plt.Rectangle((x-w/2,y-h/2),w,h,fill=False,edgecolor=c,linewidth=2))
         
         ## draw mouth
-        X=[x-self.box[0] for x in self.mouse[:0]]
-        Y=[y-self.box[2] for y in self.mouse[:1]]
+        X=[x[0]-self.box[0] for x in self.mouse]
+        Y=[y[1]-self.box[2] for y in self.mouse]
         print(f'{X=},{Y=}')
 
         plt.plot(X,Y)
@@ -312,5 +312,3 @@ class SMILE:
         
 
         
-
-
