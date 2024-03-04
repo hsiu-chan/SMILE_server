@@ -312,7 +312,10 @@ class SMILE:
             print(canine_lower)
             if len(canine_lower)>0:
                 intercanine_line = max(canine_lower)
-                self.smile_info['arc_ratio']=(incisor_lower_border-intercanine_line)/(self.smile_info['mouse_box'][3]-intercanine_line)
+
+                arc_ratio=(incisor_lower_border-intercanine_line)/(self.smile_info['mouse_box'][3]-intercanine_line)
+
+                self.smile_info['arc_ratio']=int(100*round(arc_ratio,2))
             else:
                 self.error.append('intercanine_line not found')
             
@@ -326,7 +329,9 @@ class SMILE:
         ## buccal corridor
 
         all_teeth_width = max([ t[0]+t[2]/2 for t in self.tooth])- min([ t[0]-t[2]/2 for t in self.tooth])
+
+        buccal_corridor=1-all_teeth_width/self.smile_info['mouth_width']
         
-        self.smile_info['buccal corridor']=1-all_teeth_width/self.smile_info['mouth_width']
+        self.smile_info['buccal_corridor']=int(100*round(buccal_corridor,2))
 
         
