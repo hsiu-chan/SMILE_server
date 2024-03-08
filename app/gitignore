@@ -1,0 +1,4 @@
+*.jpg
+uploads/
+*.pyc
+outputs/
