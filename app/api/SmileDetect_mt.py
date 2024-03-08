@@ -82,7 +82,7 @@ def add(file_path): ## 辨識微笑並回傳結果
     
     output=f'{OUTPUT_FOLDER}output.png' ## 輸出路徑
     
-    nowfig=SMILE(file_path, DEVICE, output_path= output, filter=0.65)
+    nowfig=SMILE(file_path, DEVICE, output_path= output, filter=0.75)
     if not nowfig.find_all_tooth():
         return {'message':"Face not found"}
     

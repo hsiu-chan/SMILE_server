@@ -93,36 +93,45 @@ class ToothClassifier:
 
         cls=np.argmax(self._now[ti]) ## 機率最大的類別
 
+
         if cls>7:
-            print('class error')
+            print('Not a tooth')
             return
         
-        if cls == 0 :
-            self._result[cls].append(ti)
-            return
+        if cls==0:  ## lower 先去upper
+            if self._now[ti][cls]>0.6:
+                self._result[cls].append(ti)
+                return
+            cls=np.argmax(self._now[ti][1:]) ## 機率最大的類別
+
+
+        if cls in (6,7) and self._now[ti][cls-2]!=0: ## 可能是犬齒
+            cls-=2
         
-        elif cls == 1 and len(self._result[1])<3: ## 上顎門牙未滿
-            self._result[cls].append(ti)
-            return
-        elif cls in (2,3,4,5) and len(self._result[cls])<2: ## 上顎側門牙犬齒未滿
-            self._result[cls].append(ti)
-            return
-        elif cls == 6:
-            if self._now[ti][4]==0: ## 不可能是 4 就必然為 6
-                self._result[cls].append(ti)
-                return
-            cls = 4
-            self._result[cls].append(ti) ## 優先去4
-            if len(self._result[cls])<2: ## 4 沒滿就 return
-                return
-        elif cls == 7:
-            if self._now[ti][5]==0: ## 不可能是 5 就必然為 7
-                self._result[cls].append(ti)
-                return
-            cls = 5
-            self._result[cls].append(ti) ## 優先去5
-            if len(self._result[cls])<2: ## 4 沒滿就 return
-                return
+        
+        self._result[cls].append(ti)
+
+        cls_num = len(self._result[cls])
+
+
+
+
+        
+        match cls:
+            case 1:
+                if cls_num<3: ## 上顎門牙未滿
+                    return
+            case 2|3|4|5:
+                if cls_num<2: ## 上顎側門牙犬齒未滿
+                    return
+            case _:
+                return 
+
+            
+            
+
+
+        
         
         
         ## 滿人找出最不可能的剔掉
@@ -138,7 +147,7 @@ class ToothClassifier:
         for i in range(len(self._now[pmin])-1):
             if self._now[pmin][i+1]>0:
                 self._now[pmin][i+1]+=adder
-
+        self._now[pmin][0]*=1.1
         #print(f'gg,{cls=},{pmin=},{result[cls]=}')
         #END+=1
 
