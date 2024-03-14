@@ -1,8 +1,15 @@
 import numpy as np
-import joblib
 from config import RANDOM_FOREST_MODEL
+import joblib
 
-loaded_model = joblib.load(RANDOM_FOREST_MODEL)
+class RDForest:
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        
+        if not cls._instance:
+            cls._instance = joblib.load(RANDOM_FOREST_MODEL)
+        return cls._instance
+
 NUM_LABELS = 8
 
 
@@ -61,7 +68,7 @@ class ToothClassifier:
         
 
 
-        self.predicts=loaded_model.predict_proba(self.features)
+        self.predicts=RDForest().predict_proba(self.features)
 
         self.analysis()
 

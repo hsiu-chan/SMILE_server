@@ -13,7 +13,7 @@ FLASK_PORT = 8888
 DEVICE = 'cpu'
 """YOLO設備(cpu,cuda,mps)"""
 
-MODEL_PATH = ROOT_PATH+"models/best.pt"
+MODEL_PATH = ROOT_PATH+"models/best_one_class.pt"
 """YOLO模型"""
 
 RANDOM_FOREST_MODEL = ROOT_PATH+'models/random_forest_model.joblib'

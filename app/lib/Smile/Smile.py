@@ -9,12 +9,20 @@ from config import OUTPUT_FOLDER, MODEL_PATH
 from lib.ToothClassifier import ToothClassifier,FDI_MAP
 
 
-Model = YOLO(MODEL_PATH)
+
+
+
+
+
 mp_face_detection = mp.solutions.face_detection
 mp_face_mesh = mp.solutions.face_mesh
+
+
 face_mesh=mp_face_mesh.FaceMesh(
-            min_detection_confidence=0.2,
-            min_tracking_confidence=0.2)
+            max_num_faces=1,       # 一次偵測最多幾個人臉
+            refine_landmarks=True,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5)
 
 
 mouse=[62,96,89,179,86,15,316,403,319,325,292,407,272,271,268,12,38,41,42,183]#嘴巴
@@ -94,7 +102,8 @@ class SMILE:
             print (f'found mouth')
         except:
             return False
-
+        
+        Model = YOLO(MODEL_PATH)
 
         ## YOLO predict
         result = Model.predict(
@@ -107,7 +116,7 @@ class SMILE:
         
         self.tooth=[]
         for box in boxes:
-            if int(box.cls!=1):
+            if int(box.cls!=0):
                 continue
             if box.conf[0]>=self.filter:
                 self.tooth.append(box.xywh.tolist()[0] )
