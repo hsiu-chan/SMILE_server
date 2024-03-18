@@ -1,4 +1,7 @@
-from flask import Flask, request, Blueprint,redirect, send_file, abort, jsonify
+from flask import Flask, request, Blueprint,redirect, send_file, abort, jsonify, Response
+
+
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 #import uuid
 import numpy as np
@@ -12,7 +15,7 @@ import os
 from lib.Smile import SMILE
 from werkzeug.utils import secure_filename
 
-from config import UPLOAD_FOLDER, DEVICE 
+from config import UPLOAD_FOLDER, DEVICE, OUTPUT_FOLDER
 
 
 # 允許的文件類型
@@ -73,11 +76,12 @@ def upload_img():
 
 
 
-def add(file_path):
+def add(file_path): ## 辨識微笑並回傳結果
 
 
     
-    nowfig=SMILE(file_path, DEVICE)
+    output=f'{OUTPUT_FOLDER}output.png' ## 輸出路徑
+    nowfig=SMILE(file_path, DEVICE, output_path= output, filter=0.65)
     if not nowfig.find_all_tooth():
         return {'message':"Face not found"}
         
@@ -88,6 +92,15 @@ def add(file_path):
 
     del nowfig
 
+    multipartData = MultipartEncoder(
+        fields={
+            'info': '這是一些關於圖片的資訊',
+            'file': ('filename', open(output, 'rb'), 'image/png')
+        }
+    )
 
 
-    return send_file( image_path, mimetype='image/jpeg')
+
+    return Response(multipartData.to_string(),
+                    headers={'Content-Type': multipartData.content_type})
+#send_file( image_path, mimetype='image/jpeg')
