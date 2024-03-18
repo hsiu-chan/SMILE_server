@@ -9,12 +9,20 @@ from config import OUTPUT_FOLDER, MODEL_PATH
 from lib.ToothClassifier import ToothClassifier,FDI_MAP
 
 
-Model = YOLO(MODEL_PATH)
+
+
+
+
+
 mp_face_detection = mp.solutions.face_detection
 mp_face_mesh = mp.solutions.face_mesh
+
+
 face_mesh=mp_face_mesh.FaceMesh(
-            min_detection_confidence=0.2,
-            min_tracking_confidence=0.2)
+            max_num_faces=1,       # 一次偵測最多幾個人臉
+            refine_landmarks=True,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5)
 
 
 mouse=[62,96,89,179,86,15,316,403,319,325,292,407,272,271,268,12,38,41,42,183]#嘴巴
@@ -27,6 +35,9 @@ class SMILE:
                  filter=0.9, 
                  output_path=f"{OUTPUT_FOLDER}output.png" ):
         self.device=device
+
+        self.error=[]
+
         #####Input/output#####
         self.input_path=input_path 
 
@@ -42,14 +53,16 @@ class SMILE:
         self.shape=self.img.shape
         """原圖shape"""
 
+
+
         #####Find mouse#####
         self.mouse=[]
         self.box=[]
-        """嘴巴Box"""
+        """boximg切割的座標 lrud"""
+        self.expand=10
         self.boximg=[]
         """裁切只保留嘴巴img"""
-        self.box_pol=[]
-        """boximg切割的座標"""
+        
 
         self.rotation_matrix=[]
         """旋轉矩陣"""
@@ -69,6 +82,11 @@ class SMILE:
 
         self.ntooth=0
         """牙齒數"""
+
+        self.smile_info={
+            'test':'vault'
+        }
+
         print('SMILE_init')
 
 
@@ -84,7 +102,8 @@ class SMILE:
             print (f'found mouth')
         except:
             return False
-
+        
+        Model = YOLO(MODEL_PATH)
 
         ## YOLO predict
         result = Model.predict(
@@ -97,10 +116,12 @@ class SMILE:
         
         self.tooth=[]
         for box in boxes:
-            if int(box.cls!=1):
+            if int(box.cls!=0):
                 continue
             if box.conf[0]>=self.filter:
                 self.tooth.append(box.xywh.tolist()[0] )
+
+        
 
 
 
@@ -109,6 +130,11 @@ class SMILE:
         self.tooth_cls=ToothClassifier(w,h,self.tooth).cls
 
         self.ntooth=len(self.tooth_cls)
+        self.smile_info['tooth_num']=self.ntooth
+
+        self.caculate_variables()
+
+
 
 
         
@@ -120,18 +146,31 @@ class SMILE:
         colors=plt.cm.hsv(np.linspace(0, 1, self.ntooth)).tolist()   
 
 
+        ## draw tooth
         for t, cl,c in zip(self.tooth, self.tooth_cls,colors):
             x,y,w,h=tuple(t)
             
-            currentAxis.text(x,y, FDI_MAP[cl],bbox={'facecolor': c, 'alpha': 0.5})
+            try:
+                currentAxis.text(x,y, FDI_MAP[cl],bbox={'facecolor': c, 'alpha': 0.5})
+            except:
+                print(cl)
             currentAxis.add_patch(plt.Rectangle((x-w/2,y-h/2),w,h,fill=False,edgecolor=c,linewidth=2))
+        
+        ## draw mouth
+        X=[x[0]-self.box[0] for x in self.mouse]
+        X.append(X[0])
+        Y=[y[1]-self.box[2] for y in self.mouse]
+        Y.append(Y[0])
+
+        plt.plot(X,Y)
+
 
 
         plt.axis('off')        
         plt.savefig(self.output_path,bbox_inches='tight',pad_inches=0.0, dpi=200)
         #plt.show()
         plt.clf()
-        print('img_out')
+        print('All tooth found and img output')
         return True
 
 
@@ -160,8 +199,8 @@ class SMILE:
 
         self.get_rotate_matrix(midline_x,midline_y)
 
-        self.rotated_img = self.img
-        #cv2.warpAffine(self.img, self.rotation_matrix[:2], (w, h), flags=cv2.INTER_LINEAR)
+        self.rotated_img = cv2.warpAffine(self.img, self.rotation_matrix[:2], (w, h), flags=cv2.INTER_LINEAR)
+        #self.img
 
         
         ## 辨識
@@ -178,6 +217,8 @@ class SMILE:
                     #    int(roxy[0]),
                     #    int(roxy[1])
                     #])
+        
+
                 
 
         
@@ -193,18 +234,23 @@ class SMILE:
         hmos=dmos-umos#嘴高
         mmos=[int((lmos+rmos)/2),int((umos+dmos)/2)]#嘴中心
 
+        self.smile_info['mouth_width']=int(wmos)
+
         
         
         ######輸出#####
-        self.box=np.array([lmos,rmos,umos,dmos])
+        self.box=np.array([lmos-self.expand,rmos+self.expand,umos-self.expand,dmos+self.expand])
+        
 
     
 
-        self.boximg=self.rotated_img[self.box[2]-5:self.box[3]+5,self.box[0]-5:self.box[1]+5]
+        self.boximg=self.img[self.box[2]:self.box[3],self.box[0]:self.box[1]]
+
+
+        self.smile_info['mouse_box'] =[10,int(rmos-self.box[0]),10, int(dmos-self.box[2])] #lrud 
         
 
 
-        self.box_pol=[self.box[0]-5,self.box[2]-5]
 
 
 
@@ -219,7 +265,7 @@ class SMILE:
         A = np.vstack([x, np.ones(len(x))]).T
         m, c = np.linalg.lstsq(A, y, rcond=None)[0]
         m=np.abs(m)
-        print(f'{m=}')
+        print(f'臉中線斜率{m=}')
 
             ## 回歸直線
         w,h,d=self.shape
@@ -231,8 +277,8 @@ class SMILE:
                     [0,0,1]])
         lenth = np.sqrt(1+m*m)
 
-        r=np.array([[m,1,0],
-            [-1,m,0],
+        r=np.array([[m,-1,0],
+            [1,m,0],
             [0,0,lenth]])/lenth
         
         t2=np.array([[1,0,cx],
@@ -240,3 +286,61 @@ class SMILE:
                     [0,0,1]])
 
         self.rotation_matrix = np.dot(t2,np.dot(r, t1))
+    
+    def caculate_variables(self):
+        tooth_map={}
+
+        for i, c in enumerate(self.tooth_cls):
+            try:
+                tooth_map[c].append(i)
+            except:
+                tooth_map[c]=[i]
+        
+        ## most posterior maxillary teeth 
+        most_posterior_maxillary_teeth=0
+        for i, cls in enumerate(self.tooth_cls):
+            if cls!=0:
+                most_posterior_maxillary_teeth+=1
+        self.smile_info['most_posterior_maxillary_teeth']=most_posterior_maxillary_teeth
+
+
+        ## Arc ratio
+        try:
+            incisor_lower_border = max([self.tooth[i][1]+ ## cy
+                                        self.tooth[i][3]/2 ## h/2
+                                        for i in tooth_map[1]])
+            
+            canine_lower=[]
+            for i in [4,5]:
+                try:
+                    for id in tooth_map[i]:
+                        canine_lower.append(self.tooth[id][1]+ ## cy
+                                    self.tooth[id][3]/2) ## h/2
+                except:
+                    pass
+            print(canine_lower)
+            if len(canine_lower)>0:
+                intercanine_line = max(canine_lower)
+
+                arc_ratio=(incisor_lower_border-intercanine_line)/(self.smile_info['mouse_box'][3]-intercanine_line)
+
+                self.smile_info['arc_ratio']=int(100*round(arc_ratio,2))
+            else:
+                self.error.append('intercanine_line not found')
+            
+            
+        except:
+            self.error.append('incisor_lower_border not found')
+        
+
+        self.tooth_map=tooth_map
+
+        ## buccal corridor
+
+        all_teeth_width = max([ t[0]+t[2]/2 for t in self.tooth])- min([ t[0]-t[2]/2 for t in self.tooth])
+
+        buccal_corridor=1-all_teeth_width/self.smile_info['mouth_width']
+        
+        self.smile_info['buccal_corridor']=int(100*round(buccal_corridor,2))
+
+        
