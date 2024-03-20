@@ -6,7 +6,7 @@ ROOT_PATH=os.path.dirname(os.path.abspath(__file__))+'/'
 UPLOAD_FOLDER =ROOT_PATH+"uploads/"
 
 OUTPUT_FOLDER =ROOT_PATH+"outputs/"
-
+TEST_IMG = ROOT_PATH+'test/input.png'
 
 FLASK_PORT = 8888
 

@@ -14,3 +14,4 @@ ultralytics
 pillow
 joblib
 scikit-learn ==  1.2.0
+dill==0.3.6

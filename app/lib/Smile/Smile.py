@@ -9,7 +9,13 @@ from config import OUTPUT_FOLDER, MODEL_PATH
 from lib.ToothClassifier import ToothClassifier,FDI_MAP
 
 
-
+class YOLO_model:
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        
+        if not cls._instance:
+            cls._instance = YOLO(MODEL_PATH)
+        return cls._instance
 
 
 
@@ -103,10 +109,11 @@ class SMILE:
         except:
             return False
         
-        Model = YOLO(MODEL_PATH)
+        #if not Model:
+        #    Model = YOLO(MODEL_PATH)
 
         ## YOLO predict
-        result = Model.predict(
+        result = YOLO_model().predict(
             source=self.output_path,
             mode="predict",
             device=self.device
