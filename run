@@ -5,6 +5,9 @@ docker-compose up -d
 docker run -it smile-server /bin/bash
 
 
+
+
+
 docker tag smile-server:latest xiangwei77/smile_server:latest
 
 docker push xiangwei77/smile_server:latest

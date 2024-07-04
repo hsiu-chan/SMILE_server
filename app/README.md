@@ -9,3 +9,6 @@
 docker build -t smile-server . 
 docker-compose up -d  
 ```
+
+for test
+hi
