@@ -4,7 +4,7 @@ services:
     image: smile-server:latest
     ports:
       - "8777:8777"
-    volumes:
+    #volumes:
       #- "/Users/chc/gits/SMILE_app/server/app:/app"
-      - "C:/gits/SMILE_server/app:/app"
+      #- "C:/gits/SMILE_server/app:/app"
       #- "/root/SMILE_server/app:/app"

@@ -26,7 +26,7 @@ RUN apt-get update && \
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-#COPY --from=builder /root/app /app
+COPY --from=builder /root/app /app
 
 # 设置环境变量 PYTHONPATH
 ENV PYTHONPATH=/usr/local/lib/python3.10/site-packages
