@@ -1,6 +1,7 @@
 from flask import Flask 
 from api.SmileDetect import SmileDetect_blueprint
 from api.SmileDetect_mt import SmileDetect_blueprint_mt
+from api.SmileDetect_json import SmileDetect_json_blueprint
 from website import website_pages_blueprint,home_blueprint #所有網頁
 
 from config import UPLOAD_FOLDER
@@ -21,5 +22,6 @@ def create_app():#Application Factories
     ###API###
     app.register_blueprint(SmileDetect_blueprint)
     app.register_blueprint(SmileDetect_blueprint_mt)
+    app.register_blueprint(SmileDetect_json_blueprint)
     
     return app

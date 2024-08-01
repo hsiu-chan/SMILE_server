@@ -80,22 +80,21 @@ def add(file_path): ## 辨識微笑並回傳結果
 
 
     
-    output=f'{OUTPUT_FOLDER}output.png' ## 輸出路徑
     
-    nowfig=SMILE(file_path, DEVICE, output_path= output, filter=0.75)
+    nowfig=SMILE(file_path, DEVICE, filter=0.75)
     if not nowfig.find_all_tooth():
-        return {'message':"Face not found"}
+        return json.dumps(nowfig.smile_info)
     
     
     
 
-    
+    nowfig.draw_result()
 
     multipartData = MultipartEncoder(
         fields={
             'info': (None, json.dumps(nowfig.smile_info), 'application/json'),
-            'error': '\n'.join(nowfig.error),
-            'image': ('smile_result', open(output, 'rb'), 'image/png')
+            'error': '\n'.join(nowfig.smile_info['error']),
+            'image': ('smile_result', open(nowfig.output_path, 'rb'), 'image/png')
         }
     )
 

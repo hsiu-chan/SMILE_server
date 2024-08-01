@@ -16,4 +16,8 @@ DEVICE = 'cpu'
 MODEL_PATH = ROOT_PATH+"models/best_one_class.pt"
 """YOLO模型"""
 
+
+ESPCN_PATH = ROOT_PATH+"models/ESPCN_x3.pb"
+"""ESPCN模型"""
+
 RANDOM_FOREST_MODEL = ROOT_PATH+'models/random_forest_model.joblib'
