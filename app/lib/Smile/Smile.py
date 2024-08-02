@@ -137,7 +137,10 @@ class SMILE:
 
     
     def is_face(self)->bool:
-        #進行人臉檢測
+        """
+        進行人臉檢測
+        """
+        
         mp_face_detection = mp.solutions.face_detection
         face_detection = mp_face_detection.FaceDetection(min_detection_confidence=0.5)
         results = face_detection.process(self.img)
@@ -148,12 +151,9 @@ class SMILE:
 
 
     def find_all_tooth(self):
-        """try:
-            self.find_mouse()
-            print (f'found mouth')
-        except Exception as e:  # 捕獲其他所有異常
-            self.add_error(f"An error occurred: {e}")
-            return False"""
+        """
+        找所有牙齒
+        """
         
         if not self.is_face():
             self.add_error('face not found')
@@ -162,9 +162,6 @@ class SMILE:
 
         
         self.find_mouse()
-        
-        #if not Model:
-        #    Model = YOLO(MODEL_PATH)
 
         ## YOLO predict
         result = YOLO_model().predict(
@@ -195,7 +192,7 @@ class SMILE:
                         tooth_box[2]/self.shape[1],
                         tooth_box[3]/self.shape[0]
                     ]
-                self.smile_info['tooth_boxes'].append(list(map(lambda num: round(num, 2), float_box)))
+                self.smile_info['tooth_boxes'].append(list(map(lambda num: round(num, 5), float_box)))
         
         # 無牙齒情況
         if (len(self.tooth))==0:
@@ -284,7 +281,7 @@ class SMILE:
                     roxy=np.dot(self.rotation_matrix,[[x],[y],[1]])
                     self.mouse.append([x,y])
                     
-                    self.smile_info['mouth'].append([round(face_landmarks.landmark[index].x,3),round(face_landmarks.landmark[index].y,3)])
+                    self.smile_info['mouth'].append([round(face_landmarks.landmark[index].x,5),round(face_landmarks.landmark[index].y,5)])
 
                     #self.mouse.append([
                     #    int(roxy[0]),
@@ -295,7 +292,15 @@ class SMILE:
                 
 
         
-        
+        re_mouth=np.array(self.smile_info['mouth'])
+
+        self.smile_info['mouth_box']=[
+            min(re_mouth[:,0]),
+            max(re_mouth[:,0]),
+            min(re_mouth[:,1]),
+            max(re_mouth[:,1]),
+        ]
+
 
         self.mouse=np.array(self.mouse)
 
@@ -309,7 +314,6 @@ class SMILE:
         hmos=dmos-umos#嘴高
         mmos=[int((lmos+rmos)/2),int((umos+dmos)/2)]#嘴中心
 
-        self.smile_info['mouth_width']=int(wmos)
 
         
         
@@ -322,16 +326,10 @@ class SMILE:
         self.boximg=self.img[self.box[2]:self.box[3],self.box[0]:self.box[1]]
 
 
-        self.smile_info['mouse_box'] =[10,int(rmos-self.box[0]),10, int(dmos-self.box[2])] #lrud 
         
 
         
         
-
-
-
-
-
         cv2.imwrite(self.output_path,self.boximg)
         print('boximg ok')
 
@@ -367,60 +365,82 @@ class SMILE:
         self.rotation_matrix = np.dot(t2,np.dot(r, t1))
     
     def caculate_variables(self):
-        tooth_map={}
-
-        for i, c in enumerate(self.tooth_cls):
-            try:
-                tooth_map[c].append(i)
-            except:
-                tooth_map[c]=[i]
+        """
+        計算牙齒參數
+        """
+        ## 初始化 cls2tooth 作為字典
         
-        ## most posterior maxillary teeth 
-        most_posterior_maxillary_teeth=0
+        cls2tooth = {} # 牙齒類別->tooth 編號
+
         for i, cls in enumerate(self.tooth_cls):
+            if cls != 0:
+                if cls not in cls2tooth:
+                    cls2tooth[cls] = []
+                cls2tooth[cls].append(i)
+
+        self.smile_info['cls2tooth'] = cls2tooth
+        
+        ## maxillary teeth exposed
+        maxillary_teeth_exposed=0
+        for cls in self.tooth_cls:
             if cls!=0:
-                most_posterior_maxillary_teeth+=1
-        self.smile_info['most_posterior_maxillary_teeth']=most_posterior_maxillary_teeth
+                maxillary_teeth_exposed+=1
+        
+        self.smile_info['maxillary_teeth_exposed']=maxillary_teeth_exposed
 
 
-        ## Arc ratio
+        teeth= self.smile_info["tooth_boxes"]
+
+        ## incisor_lower_border
         try:
-            incisor_lower_border = max([self.tooth[i][1]+ ## cy
-                                        self.tooth[i][3]/2 ## h/2
-                                        for i in tooth_map[1]])
-            
-            canine_lower=[]
-            for i in [4,5]:
-                try:
-                    for id in tooth_map[i]:
-                        canine_lower.append(self.tooth[id][1]+ ## cy
-                                    self.tooth[id][3]/2) ## h/2
-                except:
-                    pass
-            print(canine_lower)
-            if len(canine_lower)>0:
-                intercanine_line = max(canine_lower)
-
-                arc_ratio=(incisor_lower_border-intercanine_line)/(self.smile_info['mouse_box'][3]-intercanine_line)
-
-                self.smile_info['arc_ratio']=int(100*round(arc_ratio,2))
-            else:
-                self.add_error('intercanine_line not found')
-            
-            
+            incisor_lower_border = max([ teeth[i][1]+ ## cy
+                                        teeth[i][3]/2 ## h/2
+                                        for i in cls2tooth[1]])
+            self.smile_info["incisor_lower_border"]=incisor_lower_border
         except:
-            self.add_error('incisor_lower_border not found')
+            self.add_error("incisor not found")
+
+
+        ## intercanine_line
+        canine_id=list(cls2tooth[4])+list(cls2tooth[5])
+        try:
+            intercanine_line = max([
+                teeth[i][1]+ ## cy
+                teeth[i][3]/2 ## h/2
+                for i in canine_id
+            ])
+            self.smile_info["intercanine_line"]=intercanine_line
+        except:
+            self.add_error('canine not found')
+        
+        
+        ## Arc ratio
+        #try:
+        mouse_lower_border = np.max(np.array(self.smile_info["mouth"])[:,1])
+
+        print(f'{incisor_lower_border-intercanine_line=}')
+        print(f'{mouse_lower_border-intercanine_line=}')
+
+        arc_ratio=(incisor_lower_border-intercanine_line)/(mouse_lower_border-intercanine_line)
+
+        self.smile_info['arc_ratio']=round(arc_ratio,3)
+        
         
 
-        self.tooth_map=tooth_map
+        #except Exception as e:
+        #     print(f"Arc ratio error: {e}")
+        
+
 
         ## buccal corridor
 
-        all_teeth_width = max([ t[0]+t[2]/2 for t in self.tooth])- min([ t[0]-t[2]/2 for t in self.tooth])
+        all_teeth_width = max([ t[0]+t[2]/2 for t in teeth])- min([ t[0]-t[2]/2 for t in teeth])
 
-        buccal_corridor=1-all_teeth_width/self.smile_info['mouth_width']
+        mouth_box=self.smile_info['mouth_box']
+
+        buccal_corridor=1-all_teeth_width/(mouth_box[1]-mouth_box[0])
         
-        self.smile_info['buccal_corridor']=int(100*round(buccal_corridor,2))
+        self.smile_info['buccal_corridor']=round(buccal_corridor,3)
 
     def draw_mouth(self):
         # OUTPUT
@@ -451,6 +471,11 @@ class SMILE:
         #plt.show()
         plt.clf()
     def draw_result(self):
+        """
+        畫完整人臉，輸出到 output 
+        """
+
+
         # 將相對坐標轉換為絕對坐標
         def relative_to_absolute(coords, width, height):
             return [(x * width, y * height) for x, y in coords]
@@ -472,14 +497,8 @@ class SMILE:
         smile_info=self.smile_info
         image_height = background_image.shape[0]
         image_width = background_image.shape[1]
-        mouth_points = smile_info['mouth']
-        tooth_boxes = smile_info['tooth_boxes']
-        tooth_cls = smile_info['tooth_cls']
-
-        mouth_points_abs = relative_to_absolute(mouth_points, image_width, image_height)
-        mouth_points_abs.append(mouth_points_abs[0])
-        tooth_boxes_abs = relative_to_absolute([box[:2] for box in tooth_boxes], image_width, image_height)
-        tooth_sizes = [box[2:4] for box in tooth_boxes]
+        
+        
 
 
         # 畫背景
@@ -489,24 +508,40 @@ class SMILE:
         plt.imshow(background_image, extent=[0, image_width,  image_height, 0], origin='upper')
 
         # 繪製口腔輪廓
-        mouth_x, mouth_y = zip(*mouth_points_abs)
-        ax.plot(mouth_x, mouth_y, marker='', linestyle='-', color='gray', alpha=0.4)
+        
+        try:
+            mouth_points = smile_info['mouth']
+            mouth_points_abs = relative_to_absolute(mouth_points, image_width, image_height)
+            mouth_points_abs.append(mouth_points_abs[0])
+            mouth_x, mouth_y = zip(*mouth_points_abs)
+            ax.plot(mouth_x, mouth_y, marker='', linestyle='-', color='gray', alpha=0.4)
+        except:
+            pass
 
         # 繪製牙齒並根據牙齒類別上色
-        handles = []
-        labels = []
 
-        for (x, y), (w, h), cls in zip(tooth_boxes_abs, tooth_sizes, tooth_cls):
-            color = color_map.get(cls, 'gray')  # 默認顏色為灰色
-            rect = plt.Rectangle((x - w * image_width / 2, y - h * image_height / 2), w * image_width, h * image_height, 
-                                linewidth=1, edgecolor=color, facecolor='none', alpha=0.4)
-            ax.add_patch(rect)
-            if cls not in labels:
-                handles.append(rect)
-                labels.append(cls)
+        try:
 
-        # 添加圖例
-        ax.legend(handles, labels, title='Tooth Classes')
+            tooth_boxes = smile_info['tooth_boxes']
+            tooth_cls = smile_info['tooth_cls']
+            tooth_boxes_abs = relative_to_absolute([box[:2] for box in tooth_boxes], image_width, image_height)
+            tooth_sizes = [box[2:4] for box in tooth_boxes]
+            handles = []
+            labels = []
+
+            for (x, y), (w, h), cls in zip(tooth_boxes_abs, tooth_sizes, tooth_cls):
+                color = color_map.get(cls, 'gray')  # 默認顏色為灰色
+                rect = plt.Rectangle((x - w * image_width / 2, y - h * image_height / 2), w * image_width, h * image_height, 
+                                    linewidth=1, edgecolor=color, facecolor='none', alpha=0.4)
+                ax.add_patch(rect)
+                if cls not in labels:
+                    handles.append(rect)
+                    labels.append(cls)
+
+            # 添加圖例
+            ax.legend(handles, labels, title='Tooth Classes')
+        except:
+            pass
 
         # 設置圖形的範圍和標籤
         ax.set_xlim(0, image_width)
