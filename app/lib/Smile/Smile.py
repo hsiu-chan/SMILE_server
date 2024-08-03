@@ -370,7 +370,7 @@ class SMILE:
         """
         ## 初始化 cls2tooth 作為字典
         
-        cls2tooth = {} # 牙齒類別->tooth 編號
+        cls2tooth = {i:[] for i in range(10)} # 牙齒類別->tooth 編號
 
         for i, cls in enumerate(self.tooth_cls):
             if cls != 0:
@@ -415,20 +415,20 @@ class SMILE:
         
         
         ## Arc ratio
-        #try:
-        mouse_lower_border = np.max(np.array(self.smile_info["mouth"])[:,1])
+        try:
+            mouse_lower_border = np.max(np.array(self.smile_info["mouth"])[:,1])
 
-        print(f'{incisor_lower_border-intercanine_line=}')
-        print(f'{mouse_lower_border-intercanine_line=}')
+            print(f'{incisor_lower_border-intercanine_line=}')
+            print(f'{mouse_lower_border-intercanine_line=}')
 
-        arc_ratio=(incisor_lower_border-intercanine_line)/(mouse_lower_border-intercanine_line)
+            arc_ratio=(incisor_lower_border-intercanine_line)/(mouse_lower_border-intercanine_line)
 
-        self.smile_info['arc_ratio']=round(arc_ratio,3)
+            self.smile_info['arc_ratio']=round(arc_ratio,3)
         
         
 
-        #except Exception as e:
-        #     print(f"Arc ratio error: {e}")
+        except Exception as e:
+            print(f"Arc ratio error: {e}")
         
 
 
