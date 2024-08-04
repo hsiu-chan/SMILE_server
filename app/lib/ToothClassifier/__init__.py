@@ -1,1 +1,1 @@
-from .ToothClassifier import ToothClassifier
+from .ToothClassifier import ToothClassifier, FDI_MAP

@@ -6,7 +6,7 @@ import mediapipe as mp
 import os
 import numpy as np
 from config import OUTPUT_FOLDER, MODEL_PATH, ESPCN_PATH
-from lib.ToothClassifier import ToothClassifier,FDI_MAP
+from lib.ToothClassifier import ToothClassifier, FDI_MAP
 from datetime import datetime
 
 

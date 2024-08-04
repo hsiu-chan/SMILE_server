@@ -2,6 +2,18 @@ import numpy as np
 from config import RANDOM_FOREST_MODEL
 import joblib
 
+FDI_MAP={
+    0:'L',
+    1:'1',
+    2:'12',
+    3:'22',
+    4:'13',
+    5:'23',
+    6:'pm_R',
+    7:'pm_L'
+}
+
+
 class RDForest:
     _instance = None
     def __new__(cls, *args, **kwargs):
