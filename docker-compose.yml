@@ -1,10 +1,28 @@
-version: 'latest'
+version: '3.8'
 services:
   web:
     image: smile-server:latest
     ports:
       - "8777:8777"
-    #volumes:
-      #- "/Users/chc/gits/SMILE_app/server/app:/app"
-      #- "C:/gits/SMILE_server/app:/app"
-      #- "/root/SMILE_server/app:/app"
+    depends_on:
+      - db
+    command: gunicorn --bind 0.0.0.0:8777 main:app
+
+    volumes:
+      - "./app:/app"
+      # - "/Users/chc/gits/SMILE_app/server/app:/app"
+      # - "/root/SMILE_server/app:/app"
+  db:
+    image: mysql:latest
+    container_name: smile_db
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: smile1618
+      MYSQL_DATABASE: mydatabase   # 設定預設資料庫名稱
+      MYSQL_USER: user      # 設定自訂用戶名
+      MYSQL_PASSWORD: password    # 設定自訂用戶密碼
+    volumes:
+      - ./mysql/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
+      - ./mysql/data:/var/lib/mysql

@@ -1,6 +1,6 @@
 
 import os
-
+SECRET_KEY = "9069a7cb81abd236d622abf1e271b7f08b5b3d0f8c9ca7b7"
 ROOT_PATH=os.path.dirname(os.path.abspath(__file__))+'/'
 
 UPLOAD_FOLDER =ROOT_PATH+"uploads/"

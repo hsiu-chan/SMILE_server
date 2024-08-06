@@ -386,7 +386,21 @@ class SMILE:
             if cls!=0:
                 maxillary_teeth_exposed+=1
         
-        self.smile_info['maxillary_teeth_exposed']=maxillary_teeth_exposed
+        self.smile_info['number_of_maxillary_teeth_exposed']=maxillary_teeth_exposed
+
+        
+        most_posterior_maxillary_teeth_visible=3+max(len(cls2tooth[7]), len(cls2tooth[6]))
+
+        i=7
+        while True:
+            if (len(cls2tooth[i])>0):
+                if (i<6):
+                    most_posterior_maxillary_teeth_visible=int(i/2)+1
+                break
+            i-=1
+        self.smile_info['most_posterior_maxillary_teeth_visible']= most_posterior_maxillary_teeth_visible
+
+        
 
 
         teeth= self.smile_info["tooth_boxes"]
@@ -441,6 +455,18 @@ class SMILE:
         buccal_corridor=1-all_teeth_width/(mouth_box[1]-mouth_box[0])
         
         self.smile_info['buccal_corridor']=round(buccal_corridor,3)
+
+        ## 長寬
+        if (len(cls2tooth[1])>0):
+            self.smile_info['Maxillary_teeth_exposure']= np.average(
+            np.array([round((teeth[id][3])/(float(teeth[id][2])/8.6*11.2),3) for id in cls2tooth[1]]))
+
+            
+
+        
+        ## 8.6, 11.2
+
+
 
     def draw_mouth(self):
         # OUTPUT

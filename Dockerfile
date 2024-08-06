@@ -11,7 +11,9 @@ RUN apt-get update && \
     pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-COPY . /root/
+
+
+##COPY . /root/
 
 
 # 阶段2：运行阶段
@@ -22,11 +24,15 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends libgl1-mesa-glx libglib2.0-0 && \
     rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install -y \
+    libmariadb-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # 複製整個應用程式到容器
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-COPY --from=builder /root/app /app
+COPY ./app /app
 
 # 设置环境变量 PYTHONPATH
 ENV PYTHONPATH=/usr/local/lib/python3.10/site-packages
@@ -45,4 +51,4 @@ WORKDIR /app
 
 # 定義啟動應用程式的命令，使用 Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:8777", "main:app"]
-# CMD ["python", "main.py"]
+#CMD ["python", "main.py"]

@@ -2,6 +2,10 @@ gunicorn
 
 Flask== 2.2.2
 requests-toolbelt
+flask-SQLAlchemy
+Flask-Migrate
+Flask-Login
+mysqlclient
 numpy
 Jinja2==3.1.2
 Markdown==3.4.1
