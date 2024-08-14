@@ -43,8 +43,8 @@ def create_app():
     app.register_blueprint(home_blueprint)
     app.register_blueprint(SmileDetect_blueprint)
     app.register_blueprint(SmileDetect_blueprint_mt)
-    app.register_blueprint(SmileDetect_json_blueprint)
-    app.register_blueprint(Login_blueprint, url_prefix='/api')  # 為 API 設定前綴
+    app.register_blueprint(SmileDetect_json_blueprint, url_prefix='/api')
+    app.register_blueprint(Login_blueprint, url_prefix='/api')  
 
     return app
 
