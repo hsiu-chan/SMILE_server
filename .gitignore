@@ -4,3 +4,4 @@ app/uploads/*
 app/outputs/*
 data/*
 mysql/data*
+python_env*

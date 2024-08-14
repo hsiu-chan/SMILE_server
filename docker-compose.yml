@@ -27,17 +27,4 @@ services:
     volumes:
       - ./mysql/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
       - ./mysql/data:/var/lib/mysql
-  postfix:
-    image: catatnight/postfix
-    container_name: postfix
-    hostname: mail.com
-    environment:
-      - maildomain=example.com
-      - smtp_user=user:password
-      - smtp_relayhost=smtp.your-relay-host.com
-    ports:
-      - "25:25"      # SMTP
-      - "587:587"    # Submission
-    volumes:
-      - ./postfix/data:/var/mail
-    restart: always
+  

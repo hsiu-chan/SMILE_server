@@ -6,6 +6,9 @@
 ## How to run? 
 
 ```cmd
-docker build -t smile-server . 
+docker build -t smile-server .
 docker-compose up -d  
+
+
+
 ```
