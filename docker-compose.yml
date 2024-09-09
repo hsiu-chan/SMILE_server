@@ -9,16 +9,16 @@ services:
       #- mail
     command: gunicorn --bind 0.0.0.0:8777 main:app
 
-    volumes:
-      - "./app:/app"
+    #volumes:
+      #- "./app:/app"
       # - "/Users/chc/gits/SMILE_app/server/app:/app"
       # - "/root/SMILE_server/app:/app"
   db:
     image: mysql:latest
     container_name: smile_db
     restart: always
-    ports:
-      - "3306:3306"
+    #ports:
+    #  - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: smile1618
       MYSQL_DATABASE: mydatabase   # 設定預設資料庫名稱
@@ -27,4 +27,4 @@ services:
     volumes:
       - ./mysql/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
       - ./mysql/data:/var/lib/mysql
-  
+      - ./mysql/my.cnf:/etc/my.cnf
